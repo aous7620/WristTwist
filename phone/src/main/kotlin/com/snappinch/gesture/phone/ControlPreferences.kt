@@ -27,6 +27,9 @@ object ControlPreferences {
     const val ACTION_VOLUME_UP = "volume_up"
     const val ACTION_VOLUME_DOWN = "volume_down"
     const val ACTION_MUTE = "mute"
+    const val ACTION_OPEN_CAMERA = "open_camera"
+    const val ACTION_LAUNCH_ASSISTANT = "launch_assistant"
+    const val ACTION_FIND_PHONE = "find_phone"
 
     private fun prefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -109,6 +112,9 @@ object ControlPreferences {
             ACTION_VOLUME_UP -> "Volume Up"
             ACTION_VOLUME_DOWN -> "Volume Down"
             ACTION_MUTE -> "Mute"
+            ACTION_OPEN_CAMERA -> "Open Camera"
+            ACTION_LAUNCH_ASSISTANT -> "Voice Assistant"
+            ACTION_FIND_PHONE -> "Find My Phone"
             else -> "Play/Pause"
         }
     }
@@ -124,6 +130,9 @@ object ControlPreferences {
         ACTION_REWIND,
         ACTION_VOLUME_UP,
         ACTION_VOLUME_DOWN,
-        ACTION_MUTE
+        ACTION_MUTE,
+        ACTION_OPEN_CAMERA,
+        ACTION_LAUNCH_ASSISTANT,
+        ACTION_FIND_PHONE
     )
 }

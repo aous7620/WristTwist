@@ -9,86 +9,66 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="20dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/phone_title"
-            android:textColor="#FFF8E1"
-            android:textSize="28sp"
+            android:textColor="?attr/colorOnBackground"
+            android:textSize="30sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:layout_marginBottom="16dp"
             android:text="@string/phone_subtitle"
-            android:textColor="#D7D9E2"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="14dp"
             android:background="@drawable/card_surface"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/status_label"
-                android:textColor="#8E96B8"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/status_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/status_unknown"
-                android:textColor="#A5D6A7"
-                android:textSize="18sp"
+            <Button
+                android:id="@+id/toggle_service_button"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_primary"
+                android:text="@string/pause_control"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnPrimary"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal">
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="1dp" />
 
-                <Button
-                    android:id="@+id/toggle_service_button"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/button_primary"
-                    android:text="@string/pause_control"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold" />
-
-                <Space
-                    android:layout_width="10dp"
-                    android:layout_height="1dp" />
-
-                <Button
-                    android:id="@+id/settings_button"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/button_outline"
-                    android:text="@string/permissions"
-                    android:textColor="#E6ECFF"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <Button
+                android:id="@+id/settings_button"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_outline"
+                android:text="@string/permissions"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="14dp"
             android:background="@drawable/card_surface"
             android:orientation="vertical"
             android:padding="16dp">
@@ -97,7 +77,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/primary_action_label"
-                android:textColor="#8E96B8"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
 
             <TextView
@@ -106,8 +86,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/default_primary_action"
-                android:textColor="#FFE082"
-                android:textSize="17sp"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <Button
@@ -117,15 +97,16 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/button_secondary"
                 android:text="@string/change_primary_action"
-                android:textColor="#FFFFFF"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnSecondaryContainer"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/reverse_action_label"
-                android:textColor="#8E96B8"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
 
             <TextView
@@ -134,8 +115,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/default_reverse_action"
-                android:textColor="#FFE082"
-                android:textSize="17sp"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <Button
@@ -145,68 +126,9 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/button_secondary"
                 android:text="@string/change_reverse_action"
-                android:textColor="#FFFFFF"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnSecondaryContainer"
                 android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/card_surface"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/behavior_customization_label"
-                android:textColor="#8E96B8"
-                android:textSize="12sp" />
-
-            <Switch
-                android:id="@+id/switch_explicit_play_pause"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/explicit_play_pause"
-                android:textColor="#E6ECFF" />
-
-            <Switch
-                android:id="@+id/switch_allow_proxy_screen_off"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/allow_proxy_sessions"
-                android:textColor="#E6ECFF" />
-
-            <Switch
-                android:id="@+id/switch_offscreen_retry"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/enable_offscreen_retry"
-                android:textColor="#E6ECFF" />
-
-            <Switch
-                android:id="@+id/switch_haptics"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/enable_haptics"
-                android:textColor="#E6ECFF" />
-
-            <TextView
-                android:id="@+id/retry_delay_value_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/retry_delay_default"
-                android:textColor="#C2C9E6"
-                android:textSize="13sp" />
-
-            <SeekBar
-                android:id="@+id/retry_delay_seekbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="880"
-                android:progress="100" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

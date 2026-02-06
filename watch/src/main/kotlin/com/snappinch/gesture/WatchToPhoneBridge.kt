@@ -1,6 +1,7 @@
 package com.snappinch.gesture
 
 import android.content.Context
+import android.os.SystemClock
 import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -9,6 +10,9 @@ import java.util.concurrent.TimeUnit
 
 object WatchToPhoneBridge {
     private const val TAG = "WatchToPhoneBridge"
+    private const val SETTINGS_REQUEST_MIN_INTERVAL_MS = 2000L
+    @Volatile
+    private var lastSettingsRequestElapsedMs: Long = 0L
 
     fun sendMediaCommand(context: Context, action: String): Boolean {
         val ts = System.currentTimeMillis()
@@ -26,6 +30,12 @@ object WatchToPhoneBridge {
     }
 
     fun requestSettingsSync(context: Context): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastSettingsRequestElapsedMs < SETTINGS_REQUEST_MIN_INTERVAL_MS) {
+            Log.d(TAG, "Skipping settings sync request due to cooldown")
+            return false
+        }
+        lastSettingsRequestElapsedMs = now
         return sendMessage(context, WearSyncProtocol.PATH_SETTINGS_REQUEST, ByteArray(0))
     }
 

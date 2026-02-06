@@ -37,6 +37,9 @@ object ActionPreferences {
     const val ACTION_VOLUME_DOWN = "volume_down"
     const val ACTION_MUTE = "mute"
     const val ACTION_NOTIFICATIONS = "notifications"
+    const val ACTION_OPEN_CAMERA = "open_camera"
+    const val ACTION_LAUNCH_ASSISTANT = "launch_assistant"
+    const val ACTION_FIND_PHONE = "find_phone"
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -173,6 +176,9 @@ object ActionPreferences {
             WearSyncProtocol.ACTION_VOLUME_UP -> ACTION_VOLUME_UP
             WearSyncProtocol.ACTION_VOLUME_DOWN -> ACTION_VOLUME_DOWN
             WearSyncProtocol.ACTION_MUTE -> ACTION_MUTE
+            WearSyncProtocol.ACTION_OPEN_CAMERA -> ACTION_OPEN_CAMERA
+            WearSyncProtocol.ACTION_LAUNCH_ASSISTANT -> ACTION_LAUNCH_ASSISTANT
+            WearSyncProtocol.ACTION_FIND_PHONE -> ACTION_FIND_PHONE
             else -> ACTION_PLAY_PAUSE
         }
     }
@@ -194,6 +200,9 @@ object ActionPreferences {
             ACTION_VOLUME_DOWN -> "Volume Down"
             ACTION_MUTE -> "Mute"
             ACTION_NOTIFICATIONS -> "Notifications"
+            ACTION_OPEN_CAMERA -> "Open Camera"
+            ACTION_LAUNCH_ASSISTANT -> "Voice Assistant"
+            ACTION_FIND_PHONE -> "Find My Phone"
             else -> "Play/Pause Media"
         }
     }
@@ -213,6 +222,9 @@ object ActionPreferences {
         ACTION_VOLUME_UP,
         ACTION_VOLUME_DOWN,
         ACTION_MUTE,
-        ACTION_NOTIFICATIONS
+        ACTION_NOTIFICATIONS,
+        ACTION_OPEN_CAMERA,
+        ACTION_LAUNCH_ASSISTANT,
+        ACTION_FIND_PHONE
     )
 }

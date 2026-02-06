@@ -14,7 +14,7 @@
     <string name="reverse_action_label">Reverse action</string>
     <string name="default_reverse_action">Play/Pause</string>
     <string name="change_reverse_action">Change Reverse Action</string>
-    <string name="behavior_customization_label">Behavior customization</string>
+    <string name="behavior_customization_label">Advanced compatibility</string>
     <string name="explicit_play_pause">Use explicit PLAY/PAUSE key</string>
     <string name="allow_proxy_sessions">Allow proxy sessions</string>
     <string name="enable_offscreen_retry">Enable off-screen retry</string>

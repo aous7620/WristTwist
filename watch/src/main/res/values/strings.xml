@@ -29,4 +29,6 @@
     <string name="reverse_gesture_action">Reverse Gesture Action</string>
     <string name="change_primary_action_watch">Change Primary</string>
     <string name="change_reverse_action_watch">Change Reverse</string>
+    <string name="service_status_label">Service status</string>
+    <string name="default_watch_action">Play/Pause Media</string>
 </resources>

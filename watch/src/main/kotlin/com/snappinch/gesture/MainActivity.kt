@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
+import android.util.TypedValue
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -51,8 +52,11 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         updateUI()
-        thread(name = "WatchSettingsRequest") {
-            WatchToPhoneBridge.requestSettingsSync(this)
+        val lastSyncTs = ActionPreferences.getLastPhoneSyncTs(this)
+        if (System.currentTimeMillis() - lastSyncTs > 5000L) {
+            thread(name = "WatchSettingsRequest") {
+                WatchToPhoneBridge.requestSettingsSync(this)
+            }
         }
     }
 
@@ -68,19 +72,19 @@ class MainActivity : ComponentActivity() {
         when {
             !isAccessibilityEnabled -> {
                 statusText.text = getString(R.string.service_disabled_state)
-                statusText.setTextColor(0xFFF44336.toInt())
+                statusText.setTextColor(resolveThemeColor(com.google.android.material.R.attr.colorError))
                 toggleServiceButton.text = getString(R.string.enable_in_settings)
                 enableGestureButton.text = getString(R.string.enable_gesture)
             }
             isPaused -> {
                 statusText.text = getString(R.string.service_paused_state)
-                statusText.setTextColor(0xFFFF9800.toInt())
+                statusText.setTextColor(resolveThemeColor(com.google.android.material.R.attr.colorTertiary))
                 toggleServiceButton.text = getString(R.string.resume_service)
                 enableGestureButton.text = getString(R.string.open_accessibility)
             }
             else -> {
                 statusText.text = getString(R.string.service_active_state)
-                statusText.setTextColor(0xFF4CAF50.toInt())
+                statusText.setTextColor(resolveThemeColor(com.google.android.material.R.attr.colorPrimary))
                 toggleServiceButton.text = getString(R.string.pause_service)
                 enableGestureButton.text = getString(R.string.gesture_enabled)
             }
@@ -201,5 +205,11 @@ class MainActivity : ComponentActivity() {
             val sent = WatchToPhoneBridge.sendSettingsUpdate(this, payload)
             Log.d(TAG, "Pushed watch settings to phone sent=$sent payload=$payload")
         }
+    }
+
+    private fun resolveThemeColor(attr: Int): Int {
+        val typedValue = TypedValue()
+        theme.resolveAttribute(attr, typedValue, true)
+        return typedValue.data
     }
 }

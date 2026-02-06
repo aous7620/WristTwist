@@ -4,11 +4,20 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
+import android.media.Ringtone
+import android.media.RingtoneManager
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.provider.MediaStore
 import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.Wearable
@@ -17,7 +26,21 @@ import java.util.concurrent.TimeUnit
 
 object PhoneMediaExecutor {
     private const val TAG = "PhoneMediaExecutor"
+    private const val SETTINGS_SYNC_MIN_INTERVAL_MS = 1500L
+    private const val SEEK_STEP_MS = 10_000L
+    private const val FIND_PHONE_ALERT_MS = 8000L
     private val syncExecutor = Executors.newSingleThreadExecutor()
+    private val settingsSyncLock = Any()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile
+    private var activeRingtone: Ringtone? = null
+    @Volatile
+    private var alertContext: Context? = null
+    private val stopFindPhoneRunnable = Runnable { stopFindPhoneAlert() }
+    @Volatile
+    private var lastSettingsSyncElapsedMs: Long = 0L
+    @Volatile
+    private var lastSettingsSyncFingerprint: String = ""
 
     fun executeAction(context: Context, action: String) {
         if (!ControlPreferences.isControlEnabled(context)) {
@@ -49,6 +72,9 @@ object PhoneMediaExecutor {
             WearSyncProtocol.ACTION_VOLUME_UP -> adjustVolume(context, true)
             WearSyncProtocol.ACTION_VOLUME_DOWN -> adjustVolume(context, false)
             WearSyncProtocol.ACTION_MUTE -> toggleMute(context)
+            WearSyncProtocol.ACTION_OPEN_CAMERA -> openCamera(context)
+            WearSyncProtocol.ACTION_LAUNCH_ASSISTANT -> launchAssistant(context)
+            WearSyncProtocol.ACTION_FIND_PHONE -> findPhone(context)
             else -> Log.w(TAG, "Unknown action from watch: $action")
         }
     }
@@ -66,6 +92,23 @@ object PhoneMediaExecutor {
             "control_enabled" to ControlPreferences.isControlEnabled(context).toString(),
             "sync_ts" to System.currentTimeMillis().toString()
         )
+        val fingerprint = payload
+            .filterKeys { it != "sync_ts" }
+            .toSortedMap()
+            .entries
+            .joinToString("&") { (k, v) -> "$k=$v" }
+        val now = SystemClock.elapsedRealtime()
+        synchronized(settingsSyncLock) {
+            if (
+                fingerprint == lastSettingsSyncFingerprint &&
+                now - lastSettingsSyncElapsedMs < SETTINGS_SYNC_MIN_INTERVAL_MS
+            ) {
+                Log.d(TAG, "Skipping duplicate settings sync")
+                return
+            }
+            lastSettingsSyncFingerprint = fingerprint
+            lastSettingsSyncElapsedMs = now
+        }
         sendMessageToConnectedNodes(
             context,
             WearSyncProtocol.PATH_SETTINGS_SYNC,
@@ -224,13 +267,42 @@ object PhoneMediaExecutor {
                 android.view.KeyEvent.KEYCODE_MEDIA_STOP -> transport.stop()
                 android.view.KeyEvent.KEYCODE_MEDIA_NEXT -> transport.skipToNext()
                 android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS -> transport.skipToPrevious()
-                android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> transport.fastForward()
-                android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> transport.rewind()
+                android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                    val actions = controller.playbackState?.actions ?: 0L
+                    if ((actions and PlaybackState.ACTION_FAST_FORWARD) != 0L) {
+                        transport.fastForward()
+                    } else if (!seekByTransportFallback(controller, SEEK_STEP_MS)) {
+                        return false
+                    }
+                }
+                android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                    val actions = controller.playbackState?.actions ?: 0L
+                    if ((actions and PlaybackState.ACTION_REWIND) != 0L) {
+                        transport.rewind()
+                    } else if (!seekByTransportFallback(controller, -SEEK_STEP_MS)) {
+                        return false
+                    }
+                }
                 else -> return false
             }
             true
         } catch (e: Exception) {
             Log.v(TAG, "transportControls failed for ${controller.packageName}", e)
+            false
+        }
+    }
+
+    private fun seekByTransportFallback(controller: MediaController, deltaMs: Long): Boolean {
+        return try {
+            val state = controller.playbackState ?: return false
+            if ((state.actions and PlaybackState.ACTION_SEEK_TO) == 0L) return false
+            val current = state.position
+            if (current < 0L) return false
+            val target = (current + deltaMs).coerceAtLeast(0L)
+            controller.transportControls.seekTo(target)
+            true
+        } catch (e: Exception) {
+            Log.v(TAG, "seekTo fallback failed for ${controller.packageName}", e)
             false
         }
     }
@@ -248,8 +320,12 @@ object PhoneMediaExecutor {
             android.view.KeyEvent.KEYCODE_MEDIA_STOP -> (actions and PlaybackState.ACTION_STOP) != 0L
             android.view.KeyEvent.KEYCODE_MEDIA_NEXT -> (actions and PlaybackState.ACTION_SKIP_TO_NEXT) != 0L
             android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS -> (actions and PlaybackState.ACTION_SKIP_TO_PREVIOUS) != 0L
-            android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> (actions and PlaybackState.ACTION_FAST_FORWARD) != 0L
-            android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> (actions and PlaybackState.ACTION_REWIND) != 0L
+            android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD ->
+                (actions and PlaybackState.ACTION_FAST_FORWARD) != 0L ||
+                    (actions and PlaybackState.ACTION_SEEK_TO) != 0L
+            android.view.KeyEvent.KEYCODE_MEDIA_REWIND ->
+                (actions and PlaybackState.ACTION_REWIND) != 0L ||
+                    (actions and PlaybackState.ACTION_SEEK_TO) != 0L
             else -> false
         }
     }
@@ -298,6 +374,84 @@ object PhoneMediaExecutor {
     private fun toggleMute(context: Context) {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         audio.adjustVolume(AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI)
+    }
+
+    private fun openCamera(context: Context) {
+        val cameraIntent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val fallback = Intent(Intent.ACTION_MAIN).apply {
+            action = MediaStore.ACTION_IMAGE_CAPTURE
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val launched = runCatching { context.startActivity(cameraIntent) }.isSuccess ||
+            runCatching { context.startActivity(fallback) }.isSuccess
+        if (!launched) {
+            Log.w(TAG, "Unable to open camera app")
+        }
+    }
+
+    private fun launchAssistant(context: Context) {
+        val voiceIntent = Intent(Intent.ACTION_VOICE_COMMAND).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val assistIntent = Intent(Intent.ACTION_ASSIST).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val launched = runCatching { context.startActivity(voiceIntent) }.isSuccess ||
+            runCatching { context.startActivity(assistIntent) }.isSuccess
+        if (!launched) {
+            Log.w(TAG, "Unable to launch assistant")
+        }
+    }
+
+    private fun findPhone(context: Context) {
+        try {
+            mainHandler.removeCallbacks(stopFindPhoneRunnable)
+            stopFindPhoneAlert()
+            alertContext = context.applicationContext
+
+            val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+            if (ringtoneUri != null) {
+                activeRingtone = RingtoneManager.getRingtone(context, ringtoneUri)?.also { ring ->
+                    ring.play()
+                }
+            }
+
+            getVibrator(context)?.let { vib ->
+                val pattern = longArrayOf(0, 240, 120, 240, 120, 240, 120, 240)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vib.vibrate(VibrationEffect.createWaveform(pattern, -1))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vib.vibrate(pattern, -1)
+                }
+            }
+
+            mainHandler.postDelayed(stopFindPhoneRunnable, FIND_PHONE_ALERT_MS)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to execute find phone alert", e)
+        }
+    }
+
+    private fun stopFindPhoneAlert() {
+        runCatching { activeRingtone?.stop() }
+        activeRingtone = null
+        val ctx = alertContext
+        if (ctx != null) {
+            runCatching { getVibrator(ctx)?.cancel() }
+        }
+    }
+
+    private fun getVibrator(context: Context): Vibrator? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            manager?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        }
     }
 
     private fun sendMessageToConnectedNodes(context: Context, path: String, data: ByteArray) {

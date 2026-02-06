@@ -74,6 +74,8 @@ class WearDetector : SensorEventListener {
 
     fun isCurrentlyWorn(): Boolean = isWorn
 
+    fun needsAccelerometerFeed(): Boolean = !hasOffBodySensor
+
     override fun onSensorChanged(event: SensorEvent?) {
         event ?: return
         if (event.sensor.type == Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT) {

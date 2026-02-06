@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="@drawable/bg_app_gradient">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -24,8 +24,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:text="@string/app_name"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <LinearLayout
@@ -39,8 +39,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Service status"
-                    android:textColor="#888888"
+                    android:text="@string/service_status_label"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="10sp" />
 
                 <TextView
@@ -48,8 +48,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/service_disabled"
-                    android:textColor="#4CAF50"
-                    android:textSize="13sp"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -65,7 +65,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/primary_gesture_action"
-                    android:textColor="#888888"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="10sp" />
 
                 <TextView
@@ -73,9 +73,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="Play/Pause Media"
-                    android:textColor="#2196F3"
-                    android:textSize="12sp"
+                    android:text="@string/default_watch_action"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <Button
@@ -84,7 +84,8 @@
                     android:layout_height="36dp"
                     android:background="@drawable/button_secondary"
                     android:text="@string/change_primary_action_watch"
-                    android:textColor="#FFFFFF"
+                    android:textAllCaps="false"
+                    android:textColor="?attr/colorOnSecondaryContainer"
                     android:textSize="10sp" />
 
                 <TextView
@@ -92,7 +93,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="@string/reverse_gesture_action"
-                    android:textColor="#888888"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="10sp" />
 
                 <TextView
@@ -100,9 +101,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="Play/Pause Media"
-                    android:textColor="#4FC3F7"
-                    android:textSize="12sp"
+                    android:text="@string/default_watch_action"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <Button
@@ -111,7 +112,8 @@
                     android:layout_height="36dp"
                     android:background="@drawable/button_secondary"
                     android:text="@string/change_reverse_action_watch"
-                    android:textColor="#FFFFFF"
+                    android:textAllCaps="false"
+                    android:textColor="?attr/colorOnSecondaryContainer"
                     android:textSize="10sp" />
             </LinearLayout>
 
@@ -121,8 +123,9 @@
                 android:layout_height="40dp"
                 android:layout_marginBottom="6dp"
                 android:background="@drawable/button_success"
-                android:text="Enable Gesture"
-                android:textColor="#FFFFFF"
+                android:text="@string/enable_gesture"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnPrimary"
                 android:textSize="11sp" />
 
             <Button
@@ -130,8 +133,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:background="@drawable/button_danger"
-                android:text="Pause Service"
-                android:textColor="#FFFFFF"
+                android:text="@string/pause_service"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnErrorContainer"
                 android:textSize="11sp" />
         </LinearLayout>
     </ScrollView>

@@ -17,7 +17,9 @@ class PinchGestureClassifier {
 
         private const val MIN_INTERVAL_MS = 70L
         private const val MIN_TOTAL_TIME_MS = 140L
-        private const val MAX_TOTAL_TIME_MS = 1120L
+        private const val MAX_TOTAL_TIME_MS = 1000L
+        private const val MAX_GAP_1_TO_2_MS = 330L
+        private const val MAX_GAP_2_TO_3_MS = 420L
         private const val COOLDOWN_MS = 600L
         private const val DEBOUNCE_MS = 45L
 
@@ -96,6 +98,7 @@ class PinchGestureClassifier {
                     Log.d(TAG, "Sequence expired (%dms)".format(elapsed))
                 }
                 twistSequence.clear()
+                sequenceAxis = null
             }
         }
 
@@ -150,6 +153,21 @@ class PinchGestureClassifier {
 
         val lastTwist = twistSequence.last()
         val interval = twist.timestamp - lastTwist.timestamp
+
+        val intervalLimit = when (twistSequence.size) {
+            1 -> MAX_GAP_1_TO_2_MS
+            2 -> MAX_GAP_2_TO_3_MS
+            else -> Long.MAX_VALUE
+        }
+        if (interval > intervalLimit) {
+            if (DEBUG_LOGS) {
+                Log.d(TAG, "Gap expired (%dms > %dms), restarting sequence".format(interval, intervalLimit))
+            }
+            twistSequence.clear()
+            sequenceAxis = twist.axis
+            twistSequence.add(twist)
+            return null
+        }
 
         if (interval < MIN_INTERVAL_MS) {
             if (DEBUG_LOGS) {

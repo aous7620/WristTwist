@@ -17,6 +17,9 @@ object WearSyncProtocol {
     const val ACTION_VOLUME_UP = "volume_up"
     const val ACTION_VOLUME_DOWN = "volume_down"
     const val ACTION_MUTE = "mute"
+    const val ACTION_OPEN_CAMERA = "open_camera"
+    const val ACTION_LAUNCH_ASSISTANT = "launch_assistant"
+    const val ACTION_FIND_PHONE = "find_phone"
 
     fun encodeMap(payload: Map<String, String>): ByteArray {
         val body = payload.entries.joinToString("\n") { (k, v) -> "$k=$v" }

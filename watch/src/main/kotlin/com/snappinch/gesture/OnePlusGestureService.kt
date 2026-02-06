@@ -30,7 +30,11 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
     companion object {
         private const val TAG = "SnapPinchService"
         const val ACTION_TOGGLE_PAUSE = "com.snappinch.gesture.TOGGLE_PAUSE"
-        private const val SENSOR_LOG_INTERVAL = 250L
+        private const val SENSOR_LOG_INTERVAL = 1000L
+        private const val VERBOSE_SENSOR_LOGS = false
+        private const val WAKE_LOCK_TIMEOUT_MS = 10 * 60 * 1000L
+        private const val WAKE_LOCK_REFRESH_INTERVAL_MS = 5 * 60 * 1000L
+        private const val SEEK_STEP_MS = 10_000L
     }
 
     private lateinit var sensorManager: SensorManager
@@ -42,6 +46,15 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
     private var sensorHandler: Handler? = null
     
     private var wakeLock: PowerManager.WakeLock? = null
+    private val wakeLockRefreshRunnable = object : Runnable {
+        override fun run() {
+            if (!ActionPreferences.isServiceEnabled(this@OnePlusGestureService) || !isWatchWorn) {
+                return
+            }
+            refreshWakeLock()
+            sensorHandler?.postDelayed(this, WAKE_LOCK_REFRESH_INTERVAL_MS)
+        }
+    }
 
     private lateinit var vibrator: Vibrator
 
@@ -183,14 +196,29 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                 PowerManager.PARTIAL_WAKE_LOCK,
                 "SnapPinch::SensorWakeLock"
             )
+            wakeLock?.setReferenceCounted(false)
         }
-        if (wakeLock?.isHeld != true) {
-            wakeLock?.acquire()
-            Log.d(TAG, "Wakelock acquired")
+        refreshWakeLock()
+        sensorHandler?.removeCallbacks(wakeLockRefreshRunnable)
+        sensorHandler?.postDelayed(wakeLockRefreshRunnable, WAKE_LOCK_REFRESH_INTERVAL_MS)
+    }
+
+    private fun refreshWakeLock() {
+        try {
+            wakeLock?.let { lock ->
+                if (lock.isHeld) {
+                    lock.release()
+                }
+                lock.acquire(WAKE_LOCK_TIMEOUT_MS)
+                Log.d(TAG, "Wakelock acquired/refreshed")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to refresh wakelock", e)
         }
     }
     
     private fun releaseResources() {
+        sensorHandler?.removeCallbacks(wakeLockRefreshRunnable)
         wakeLock?.let {
             if (it.isHeld) {
                 it.release()
@@ -238,17 +266,21 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
             Log.d(TAG, "Sensor thread started with MAX_PRIORITY")
         }
 
-        linearAccelerometer?.let { sensor ->
-            val success = sensorManager.registerListener(
-                this,
-                sensor,
-                SensorManager.SENSOR_DELAY_FASTEST,
-                0,
-                sensorHandler  // Deliver callbacks to our thread
-            )
-            if (success) {
-                Log.d(TAG, "Accelerometer listener registered on dedicated thread")
+        if (wearDetector.needsAccelerometerFeed()) {
+            linearAccelerometer?.let { sensor ->
+                val success = sensorManager.registerListener(
+                    this,
+                    sensor,
+                    SensorManager.SENSOR_DELAY_FASTEST,
+                    0,
+                    sensorHandler
+                )
+                if (success) {
+                    Log.d(TAG, "Accelerometer listener registered on dedicated thread")
+                }
             }
+        } else {
+            Log.d(TAG, "Skipping accelerometer listener - off-body sensor available")
         }
         
         gyroscope?.let { sensor ->
@@ -287,7 +319,7 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
         }
         
         eventCounter++
-        val shouldLog = eventCounter % SENSOR_LOG_INTERVAL == 0L
+        val shouldLog = VERBOSE_SENSOR_LOGS && eventCounter % SENSOR_LOG_INTERVAL == 0L
         
         if (shouldLog) {
             Log.d(TAG, "onSensorChanged: type=${event.sensor.type}, worn=$isWatchWorn, values=${event.values.take(3)}")
@@ -301,6 +333,9 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
         
         when (event.sensor.type) {
             Sensor.TYPE_LINEAR_ACCELERATION -> {
+                if (!wearDetector.needsAccelerometerFeed()) {
+                    return
+                }
                 val x = event.values[0]
                 val y = event.values[1]
                 val z = event.values[2]
@@ -339,7 +374,9 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
     private var eventCounter = 0L
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        Log.d(TAG, "Sensor accuracy changed: ${sensor?.name} = $accuracy")
+        if (VERBOSE_SENSOR_LOGS) {
+            Log.d(TAG, "Sensor accuracy changed: ${sensor?.name} = $accuracy")
+        }
     }
 
     private fun performGestureAction(startDirection: Int) {
@@ -398,6 +435,18 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                 ActionPreferences.ACTION_VOLUME_DOWN -> performRemoteMediaAction(action) || adjustVolume(false)
                 ActionPreferences.ACTION_MUTE -> performRemoteMediaAction(action) || toggleMute()
                 ActionPreferences.ACTION_NOTIFICATIONS -> performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
+                ActionPreferences.ACTION_OPEN_CAMERA -> WatchToPhoneBridge.sendMediaCommand(
+                    this,
+                    WearSyncProtocol.ACTION_OPEN_CAMERA
+                )
+                ActionPreferences.ACTION_LAUNCH_ASSISTANT -> WatchToPhoneBridge.sendMediaCommand(
+                    this,
+                    WearSyncProtocol.ACTION_LAUNCH_ASSISTANT
+                )
+                ActionPreferences.ACTION_FIND_PHONE -> WatchToPhoneBridge.sendMediaCommand(
+                    this,
+                    WearSyncProtocol.ACTION_FIND_PHONE
+                )
                 else -> performMediaAction(
                     ActionPreferences.ACTION_PLAY_PAUSE,
                     android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
@@ -453,6 +502,9 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
             ActionPreferences.ACTION_VOLUME_UP -> WearSyncProtocol.ACTION_VOLUME_UP
             ActionPreferences.ACTION_VOLUME_DOWN -> WearSyncProtocol.ACTION_VOLUME_DOWN
             ActionPreferences.ACTION_MUTE -> WearSyncProtocol.ACTION_MUTE
+            ActionPreferences.ACTION_OPEN_CAMERA -> WearSyncProtocol.ACTION_OPEN_CAMERA
+            ActionPreferences.ACTION_LAUNCH_ASSISTANT -> WearSyncProtocol.ACTION_LAUNCH_ASSISTANT
+            ActionPreferences.ACTION_FIND_PHONE -> WearSyncProtocol.ACTION_FIND_PHONE
             else -> null
         }
     }
@@ -664,13 +716,42 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                 android.view.KeyEvent.KEYCODE_MEDIA_STOP -> transport.stop()
                 android.view.KeyEvent.KEYCODE_MEDIA_NEXT -> transport.skipToNext()
                 android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS -> transport.skipToPrevious()
-                android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> transport.fastForward()
-                android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> transport.rewind()
+                android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                    val actions = controller.playbackState?.actions ?: 0L
+                    if ((actions and PlaybackState.ACTION_FAST_FORWARD) != 0L) {
+                        transport.fastForward()
+                    } else if (!seekByTransportFallback(controller, SEEK_STEP_MS)) {
+                        return false
+                    }
+                }
+                android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                    val actions = controller.playbackState?.actions ?: 0L
+                    if ((actions and PlaybackState.ACTION_REWIND) != 0L) {
+                        transport.rewind()
+                    } else if (!seekByTransportFallback(controller, -SEEK_STEP_MS)) {
+                        return false
+                    }
+                }
                 else -> return false
             }
             true
         } catch (e: Exception) {
             Log.v(TAG, "transportControls failed for ${controller.packageName}", e)
+            false
+        }
+    }
+
+    private fun seekByTransportFallback(controller: MediaController, deltaMs: Long): Boolean {
+        return try {
+            val state = controller.playbackState ?: return false
+            if ((state.actions and PlaybackState.ACTION_SEEK_TO) == 0L) return false
+            val current = state.position
+            if (current < 0L) return false
+            val target = (current + deltaMs).coerceAtLeast(0L)
+            controller.transportControls.seekTo(target)
+            true
+        } catch (e: Exception) {
+            Log.v(TAG, "seekTo fallback failed for ${controller.packageName}", e)
             false
         }
     }
@@ -744,10 +825,12 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                 (actions and PlaybackState.ACTION_STOP) != 0L
             }
             android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
-                (actions and PlaybackState.ACTION_FAST_FORWARD) != 0L
+                (actions and PlaybackState.ACTION_FAST_FORWARD) != 0L ||
+                    (actions and PlaybackState.ACTION_SEEK_TO) != 0L
             }
             android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> {
-                (actions and PlaybackState.ACTION_REWIND) != 0L
+                (actions and PlaybackState.ACTION_REWIND) != 0L ||
+                    (actions and PlaybackState.ACTION_SEEK_TO) != 0L
             }
             else -> false
         }
