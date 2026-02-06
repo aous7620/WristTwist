@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WristTwist Companion</string>
+    <string name="notification_listener_name">WristTwist Media Access</string>
+    <string name="phone_title">WristTwist Companion</string>
+    <string name="phone_subtitle">Sync watch gesture actions and media preferences.</string>
+    <string name="status_label">Status</string>
+    <string name="status_unknown">Unknown</string>
+    <string name="pause_control">Pause Control</string>
+    <string name="permissions">Permissions</string>
+    <string name="primary_action_label">Primary action</string>
+    <string name="default_primary_action">Play/Pause</string>
+    <string name="change_primary_action">Change Primary Action</string>
+    <string name="behavior_customization_label">Behavior customization</string>
+    <string name="explicit_play_pause">Use explicit PLAY/PAUSE key</string>
+    <string name="allow_proxy_sessions">Allow proxy sessions</string>
+    <string name="enable_offscreen_retry">Enable off-screen retry</string>
+    <string name="enable_haptics">Enable haptics</string>
+    <string name="retry_delay_default">Off-screen retry delay: 220ms</string>
+    <string name="resume_control">Resume Control</string>
+    <string name="control_resumed">Control resumed</string>
+    <string name="control_paused">Control paused</string>
+    <string name="status_notification_access_missing">Notification Access Missing</string>
+    <string name="status_control_paused">Control Paused</string>
+    <string name="status_control_ready">Control Ready</string>
+    <string name="select_primary_action">Select Primary Action</string>
+    <string name="cancel">Cancel</string>
+    <string name="notification_settings_fallback_hint">Open Settings > Apps > Special app access > Notification access</string>
+</resources>
