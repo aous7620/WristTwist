@@ -119,6 +119,34 @@
                 android:text="@string/change_primary_action"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/reverse_action_label"
+                android:textColor="#8E96B8"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/reverse_action_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/default_reverse_action"
+                android:textColor="#FFE082"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/change_reverse_action_button"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/button_secondary"
+                android:text="@string/change_reverse_action"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout

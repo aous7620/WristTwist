@@ -9,6 +9,7 @@ import android.content.SharedPreferences
 object ActionPreferences {
     private const val PREFS_NAME = "snappinch_prefs"
     private const val KEY_ACTION = "gesture_action"
+    private const val KEY_REVERSE_ACTION = "gesture_reverse_action"
     private const val KEY_SERVICE_ENABLED = "service_enabled"
     private const val KEY_PREFER_EXPLICIT_PLAY_PAUSE = "prefer_explicit_play_pause"
     private const val KEY_ALLOW_PROXY_SCREEN_OFF = "allow_proxy_screen_off"
@@ -47,6 +48,14 @@ object ActionPreferences {
 
     fun setSelectedAction(context: Context, action: String) {
         getPrefs(context).edit().putString(KEY_ACTION, action).apply()
+    }
+
+    fun getReverseAction(context: Context): String {
+        return getPrefs(context).getString(KEY_REVERSE_ACTION, ACTION_PLAY_PAUSE) ?: ACTION_PLAY_PAUSE
+    }
+
+    fun setReverseAction(context: Context, action: String) {
+        getPrefs(context).edit().putString(KEY_REVERSE_ACTION, action).apply()
     }
 
     fun isServiceEnabled(context: Context): Boolean {
@@ -115,21 +124,12 @@ object ActionPreferences {
         val editor = getPrefs(context).edit()
 
         payload["primary_action"]?.let { primary ->
-            val mappedAction = when (primary) {
-                WearSyncProtocol.ACTION_PLAY_PAUSE -> ACTION_PLAY_PAUSE
-                WearSyncProtocol.ACTION_PLAY -> ACTION_PLAY
-                WearSyncProtocol.ACTION_PAUSE -> ACTION_PAUSE
-                WearSyncProtocol.ACTION_STOP -> ACTION_STOP
-                WearSyncProtocol.ACTION_NEXT -> ACTION_NEXT_TRACK
-                WearSyncProtocol.ACTION_PREVIOUS -> ACTION_PREV_TRACK
-                WearSyncProtocol.ACTION_FAST_FORWARD -> ACTION_FAST_FORWARD
-                WearSyncProtocol.ACTION_REWIND -> ACTION_REWIND
-                WearSyncProtocol.ACTION_VOLUME_UP -> ACTION_VOLUME_UP
-                WearSyncProtocol.ACTION_VOLUME_DOWN -> ACTION_VOLUME_DOWN
-                WearSyncProtocol.ACTION_MUTE -> ACTION_MUTE
-                else -> ACTION_PLAY_PAUSE
-            }
+            val mappedAction = mapProtocolAction(primary)
             editor.putString(KEY_ACTION, mappedAction)
+        }
+        payload["reverse_action"]?.let { reverse ->
+            val mappedAction = mapProtocolAction(reverse)
+            editor.putString(KEY_REVERSE_ACTION, mappedAction)
         }
 
         payload["prefer_explicit_play_pause"]?.toBooleanStrictOrNull()?.let {
@@ -158,6 +158,23 @@ object ActionPreferences {
         }
 
         editor.apply()
+    }
+
+    private fun mapProtocolAction(action: String): String {
+        return when (action) {
+            WearSyncProtocol.ACTION_PLAY_PAUSE -> ACTION_PLAY_PAUSE
+            WearSyncProtocol.ACTION_PLAY -> ACTION_PLAY
+            WearSyncProtocol.ACTION_PAUSE -> ACTION_PAUSE
+            WearSyncProtocol.ACTION_STOP -> ACTION_STOP
+            WearSyncProtocol.ACTION_NEXT -> ACTION_NEXT_TRACK
+            WearSyncProtocol.ACTION_PREVIOUS -> ACTION_PREV_TRACK
+            WearSyncProtocol.ACTION_FAST_FORWARD -> ACTION_FAST_FORWARD
+            WearSyncProtocol.ACTION_REWIND -> ACTION_REWIND
+            WearSyncProtocol.ACTION_VOLUME_UP -> ACTION_VOLUME_UP
+            WearSyncProtocol.ACTION_VOLUME_DOWN -> ACTION_VOLUME_DOWN
+            WearSyncProtocol.ACTION_MUTE -> ACTION_MUTE
+            else -> ACTION_PLAY_PAUSE
+        }
     }
 
     fun getActionDisplayName(action: String): String {

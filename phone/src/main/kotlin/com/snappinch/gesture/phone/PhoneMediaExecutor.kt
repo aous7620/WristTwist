@@ -56,6 +56,7 @@ object PhoneMediaExecutor {
     fun syncSettingsToWatch(context: Context) {
         val payload = mapOf(
             "primary_action" to ControlPreferences.getPrimaryAction(context),
+            "reverse_action" to ControlPreferences.getReverseAction(context),
             "prefer_explicit_play_pause" to ControlPreferences.preferExplicitPlayPauseKey(context).toString(),
             "allow_proxy_screen_off" to ControlPreferences.allowProxyControlWhenScreenOff(context).toString(),
             "enable_offscreen_retry" to ControlPreferences.isOffscreenRetryEnabled(context).toString(),

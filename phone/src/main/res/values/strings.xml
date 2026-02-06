@@ -11,6 +11,9 @@
     <string name="primary_action_label">Primary action</string>
     <string name="default_primary_action">Play/Pause</string>
     <string name="change_primary_action">Change Primary Action</string>
+    <string name="reverse_action_label">Reverse action</string>
+    <string name="default_reverse_action">Play/Pause</string>
+    <string name="change_reverse_action">Change Reverse Action</string>
     <string name="behavior_customization_label">Behavior customization</string>
     <string name="explicit_play_pause">Use explicit PLAY/PAUSE key</string>
     <string name="allow_proxy_sessions">Allow proxy sessions</string>
@@ -25,6 +28,7 @@
     <string name="status_control_paused">Control Paused</string>
     <string name="status_control_ready">Control Ready</string>
     <string name="select_primary_action">Select Primary Action</string>
+    <string name="select_reverse_action">Select Reverse Action</string>
     <string name="cancel">Cancel</string>
     <string name="notification_settings_fallback_hint">Open Settings > Apps > Special app access > Notification access</string>
 </resources>

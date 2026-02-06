@@ -25,9 +25,11 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var statusText: TextView
     private lateinit var currentActionText: TextView
+    private lateinit var reverseActionText: TextView
     private lateinit var retryDelayValueText: TextView
 
     private lateinit var changeActionButton: Button
+    private lateinit var changeReverseActionButton: Button
     private lateinit var settingsButton: Button
     private lateinit var toggleServiceButton: Button
 
@@ -85,9 +87,11 @@ class MainActivity : ComponentActivity() {
     private fun bindViews() {
         statusText = findViewById(R.id.status_text)
         currentActionText = findViewById(R.id.current_action_text)
+        reverseActionText = findViewById(R.id.reverse_action_text)
         retryDelayValueText = findViewById(R.id.retry_delay_value_text)
 
         changeActionButton = findViewById(R.id.change_action_button)
+        changeReverseActionButton = findViewById(R.id.change_reverse_action_button)
         settingsButton = findViewById(R.id.settings_button)
         toggleServiceButton = findViewById(R.id.toggle_service_button)
 
@@ -99,7 +103,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun bindActions() {
-        changeActionButton.setOnClickListener { showActionSelectionDialog() }
+        changeActionButton.setOnClickListener { showActionSelectionDialog(reverse = false) }
+        changeReverseActionButton.setOnClickListener { showActionSelectionDialog(reverse = true) }
         settingsButton.setOnClickListener { openNotificationListenerSettings() }
         toggleServiceButton.setOnClickListener { toggleControl() }
 
@@ -185,6 +190,9 @@ class MainActivity : ComponentActivity() {
         currentActionText.text = ControlPreferences.getActionDisplayName(
             ControlPreferences.getPrimaryAction(this)
         )
+        reverseActionText.text = ControlPreferences.getActionDisplayName(
+            ControlPreferences.getReverseAction(this)
+        )
     }
 
     private fun toggleControl() {
@@ -199,16 +207,27 @@ class MainActivity : ComponentActivity() {
         ).show()
     }
 
-    private fun showActionSelectionDialog() {
+    private fun showActionSelectionDialog(reverse: Boolean) {
         val actions = ControlPreferences.getAllActions()
         val names = actions.map(ControlPreferences::getActionDisplayName).toTypedArray()
-        val current = ControlPreferences.getPrimaryAction(this)
+        val current = if (reverse) {
+            ControlPreferences.getReverseAction(this)
+        } else {
+            ControlPreferences.getPrimaryAction(this)
+        }
         val currentIndex = actions.indexOf(current)
 
         AlertDialog.Builder(this)
-            .setTitle(getString(R.string.select_primary_action))
+            .setTitle(
+                if (reverse) getString(R.string.select_reverse_action)
+                else getString(R.string.select_primary_action)
+            )
             .setSingleChoiceItems(names, currentIndex) { dialog, which ->
-                ControlPreferences.setPrimaryAction(this, actions[which])
+                if (reverse) {
+                    ControlPreferences.setReverseAction(this, actions[which])
+                } else {
+                    ControlPreferences.setPrimaryAction(this, actions[which])
+                }
                 PhoneMediaExecutor.syncSettingsToWatchAsync(this)
                 updateUI()
                 dialog.dismiss()

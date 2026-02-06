@@ -74,6 +74,14 @@ class PhoneSyncListenerService : WearableListenerService() {
                         changed = true
                     }
                 }
+                payload["reverse_action"]?.let { action ->
+                    if (ControlPreferences.getAllActions().contains(action) &&
+                        ControlPreferences.getReverseAction(this) != action
+                    ) {
+                        ControlPreferences.setReverseAction(this, action)
+                        changed = true
+                    }
+                }
                 payload["control_enabled"]?.toBooleanStrictOrNull()?.let { enabled ->
                     if (ControlPreferences.isControlEnabled(this) != enabled) {
                         ControlPreferences.setControlEnabled(this, enabled)

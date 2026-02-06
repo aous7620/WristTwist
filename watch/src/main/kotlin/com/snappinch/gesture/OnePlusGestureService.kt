@@ -318,9 +318,9 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                     event.values[2]
                 )
 
-                val isPinchDetected = gestureClassifier.processSample(currentTime)
-                if (isPinchDetected) {
-                    performGestureAction()
+                val gestureStartDirection = gestureClassifier.processSample(currentTime)
+                if (gestureStartDirection != null) {
+                    performGestureAction(gestureStartDirection)
                 }
             }
         }
@@ -342,7 +342,7 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
         Log.d(TAG, "Sensor accuracy changed: ${sensor?.name} = $accuracy")
     }
 
-    private fun performGestureAction() {
+    private fun performGestureAction(startDirection: Int) {
         try {
             if (!ActionPreferences.isServiceEnabled(this)) {
                 Log.d(TAG, "Service is paused, ignoring gesture")
@@ -351,8 +351,12 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
 
             vibrateDoubleBuzz()
 
-            val action = ActionPreferences.getSelectedAction(this)
-            Log.d(TAG, "Performing action: $action")
+            val action = if (startDirection >= 0) {
+                ActionPreferences.getReverseAction(this)
+            } else {
+                ActionPreferences.getSelectedAction(this)
+            }
+            Log.d(TAG, "Performing action: $action (startDirection=$startDirection)")
 
             val success = when (action) {
                 ActionPreferences.ACTION_PLAY_PAUSE -> performMediaAction(

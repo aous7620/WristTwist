@@ -24,7 +24,9 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var statusText: TextView
     private lateinit var currentActionText: TextView
+    private lateinit var reverseActionText: TextView
     private lateinit var changeActionButton: Button
+    private lateinit var changeReverseActionButton: Button
     private lateinit var enableGestureButton: Button
     private lateinit var toggleServiceButton: Button
 
@@ -34,11 +36,14 @@ class MainActivity : ComponentActivity() {
 
         statusText = findViewById(R.id.status_text)
         currentActionText = findViewById(R.id.current_action_text)
+        reverseActionText = findViewById(R.id.reverse_action_text)
         changeActionButton = findViewById(R.id.change_action_button)
+        changeReverseActionButton = findViewById(R.id.change_reverse_action_button)
         enableGestureButton = findViewById(R.id.enable_gesture_button)
         toggleServiceButton = findViewById(R.id.toggle_service_button)
 
-        changeActionButton.setOnClickListener { showActionSelectionDialog() }
+        changeActionButton.setOnClickListener { showActionSelectionDialog(reverse = false) }
+        changeReverseActionButton.setOnClickListener { showActionSelectionDialog(reverse = true) }
         enableGestureButton.setOnClickListener { openAccessibilitySettings() }
         toggleServiceButton.setOnClickListener { toggleService() }
     }
@@ -86,20 +91,33 @@ class MainActivity : ComponentActivity() {
 
     private fun updateActionDisplay() {
         val action = ActionPreferences.getSelectedAction(this)
+        val reverseAction = ActionPreferences.getReverseAction(this)
         currentActionText.text = ActionPreferences.getActionDisplayName(action)
+        reverseActionText.text = ActionPreferences.getActionDisplayName(reverseAction)
     }
 
-    private fun showActionSelectionDialog() {
+    private fun showActionSelectionDialog(reverse: Boolean) {
         val actions = ActionPreferences.getAllActions()
         val actionNames = actions.map { ActionPreferences.getActionDisplayName(it) }.toTypedArray()
-        val currentAction = ActionPreferences.getSelectedAction(this)
+        val currentAction = if (reverse) {
+            ActionPreferences.getReverseAction(this)
+        } else {
+            ActionPreferences.getSelectedAction(this)
+        }
         val currentIndex = actions.indexOf(currentAction)
 
         AlertDialog.Builder(this)
-            .setTitle(getString(R.string.select_action))
+            .setTitle(
+                if (reverse) getString(R.string.select_reverse_action)
+                else getString(R.string.select_action)
+            )
             .setSingleChoiceItems(actionNames, currentIndex) { dialog, which ->
                 val selectedAction = actions[which]
-                ActionPreferences.setSelectedAction(this, selectedAction)
+                if (reverse) {
+                    ActionPreferences.setReverseAction(this, selectedAction)
+                } else {
+                    ActionPreferences.setSelectedAction(this, selectedAction)
+                }
                 pushWatchSettingsToPhone()
                 updateActionDisplay()
                 dialog.dismiss()
@@ -175,6 +193,7 @@ class MainActivity : ComponentActivity() {
     private fun pushWatchSettingsToPhone() {
         val payload = mapOf(
             "primary_action" to ActionPreferences.getSelectedAction(this),
+            "reverse_action" to ActionPreferences.getReverseAction(this),
             "control_enabled" to ActionPreferences.isServiceEnabled(this).toString(),
             "sync_ts" to System.currentTimeMillis().toString()
         )

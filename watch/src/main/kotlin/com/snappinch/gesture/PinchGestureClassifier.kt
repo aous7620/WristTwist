@@ -17,8 +17,8 @@ class PinchGestureClassifier {
 
         private const val MIN_INTERVAL_MS = 70L
         private const val MIN_TOTAL_TIME_MS = 140L
-        private const val MAX_TOTAL_TIME_MS = 1200L
-        private const val COOLDOWN_MS = 1000L
+        private const val MAX_TOTAL_TIME_MS = 1120L
+        private const val COOLDOWN_MS = 600L
         private const val DEBOUNCE_MS = 45L
 
         private const val BASELINE_WINDOW = 20
@@ -32,7 +32,8 @@ class PinchGestureClassifier {
     private data class TwistEvent(
         val timestamp: Long,
         val rotationSpeed: Float,
-        val direction: Int
+        val direction: Int,
+        val axis: Int
     )
 
     private val twistSequence = mutableListOf<TwistEvent>()
@@ -48,6 +49,7 @@ class PinchGestureClassifier {
 
     private var sampleCount = 0
     private var totalTwists = 0
+    private var sequenceAxis: Int? = null
 
     fun updateGyroscope(x: Float, y: Float, z: Float) {
         currentGyroX = x
@@ -63,12 +65,12 @@ class PinchGestureClassifier {
         }
     }
 
-    fun processSample(timestamp: Long): Boolean {
+    fun processSample(timestamp: Long): Int? {
         sampleCount++
 
         val gyroMag = currentGyroMag
         val baseline = calculateGyroBaseline()
-        val axisQualified = isTwistAxisQualified()
+        val axisDirection = getQualifiedAxisDirection()
 
         if (DEBUG_LOGS && sampleCount % STATUS_LOG_INTERVAL == 0) {
             Log.d(
@@ -76,7 +78,7 @@ class PinchGestureClassifier {
                 "Status: gyroMag=%.1f, base=%.1f, axisOk=%s, seq=%d, twists=%d".format(
                     gyroMag,
                     baseline,
-                    axisQualified,
+                    axisDirection != null,
                     twistSequence.size,
                     totalTwists
                 )
@@ -84,7 +86,7 @@ class PinchGestureClassifier {
         }
 
         if (timestamp - lastTriggerTime < COOLDOWN_MS) {
-            return false
+            return null
         }
 
         if (twistSequence.isNotEmpty()) {
@@ -98,22 +100,22 @@ class PinchGestureClassifier {
         }
 
         if (timestamp - lastTwistTime < DEBOUNCE_MS) {
-            return false
+            return null
         }
 
         val isSpike =
             gyroMag > MIN_TWIST_SPEED &&
                 gyroMag < MAX_TWIST_SPEED &&
                 gyroMag > baseline * SPIKE_RATIO
-        if (!isSpike || !axisQualified) {
-            return false
+        if (!isSpike || axisDirection == null) {
+            return null
         }
 
-        val direction = if (currentGyroX >= 0) 1 else -1
-        return processTwist(TwistEvent(timestamp, gyroMag, direction), timestamp)
+        val (axis, direction) = axisDirection
+        return processTwist(TwistEvent(timestamp, gyroMag, direction, axis), timestamp)
     }
 
-    private fun processTwist(twist: TwistEvent, currentTime: Long): Boolean {
+    private fun processTwist(twist: TwistEvent, currentTime: Long): Int? {
         totalTwists++
         lastTwistTime = currentTime
 
@@ -130,11 +132,20 @@ class PinchGestureClassifier {
         }
 
         if (twistSequence.isEmpty()) {
+            sequenceAxis = twist.axis
             twistSequence.add(twist)
             if (DEBUG_LOGS) {
-                Log.i(TAG, "TWIST 1/3 (dir=%d)".format(twist.direction))
+                Log.i(TAG, "TWIST 1/3 (dir=%d, axis=%d)".format(twist.direction, twist.axis))
             }
-            return false
+            return null
+        }
+
+        val lockedAxis = sequenceAxis
+        if (lockedAxis != null && twist.axis != lockedAxis) {
+            if (DEBUG_LOGS) {
+                Log.d(TAG, "Axis changed (%d -> %d) - ignoring sample".format(lockedAxis, twist.axis))
+            }
+            return null
         }
 
         val lastTwist = twistSequence.last()
@@ -144,10 +155,10 @@ class PinchGestureClassifier {
             if (DEBUG_LOGS) {
                 Log.d(TAG, "Too fast (%dms) - same motion".format(interval))
             }
-            if (twist.rotationSpeed > lastTwist.rotationSpeed) {
+            if (twist.direction == lastTwist.direction && twist.rotationSpeed > lastTwist.rotationSpeed) {
                 twistSequence[twistSequence.lastIndex] = twist
             }
-            return false
+            return null
         }
 
         if (twist.direction == lastTwist.direction) {
@@ -155,11 +166,12 @@ class PinchGestureClassifier {
                 Log.d(TAG, "Same direction - restarting with this as first")
             }
             twistSequence.clear()
+            sequenceAxis = twist.axis
             twistSequence.add(twist)
             if (DEBUG_LOGS) {
                 Log.i(TAG, "TWIST 1/3 (dir=%d) [restart]".format(twist.direction))
             }
-            return false
+            return null
         }
 
         twistSequence.add(twist)
@@ -169,7 +181,7 @@ class PinchGestureClassifier {
                 if (DEBUG_LOGS) {
                     Log.i(TAG, "TWIST 2/3 (dir=%d)".format(twist.direction))
                 }
-                false
+                null
             }
 
             3 -> {
@@ -182,7 +194,8 @@ class PinchGestureClassifier {
                         Log.d(TAG, "Sequence too fast (%dms) - ignoring".format(totalTime))
                     }
                     twistSequence.clear()
-                    return false
+                    sequenceAxis = null
+                    return null
                 }
 
                 if (t1.direction == t3.direction && t2.direction != t1.direction) {
@@ -197,17 +210,20 @@ class PinchGestureClassifier {
                     )
                     lastTriggerTime = currentTime
                     twistSequence.clear()
-                    true
+                    sequenceAxis = null
+                    t1.direction
                 } else {
                     Log.w(TAG, "Pattern mismatch, resetting")
                     twistSequence.clear()
-                    false
+                    sequenceAxis = null
+                    null
                 }
             }
 
             else -> {
                 twistSequence.clear()
-                false
+                sequenceAxis = null
+                null
             }
         }
     }
@@ -218,22 +234,47 @@ class PinchGestureClassifier {
         return sorted[sorted.size / 2]
     }
 
-    private fun isTwistAxisQualified(): Boolean {
+    private fun getQualifiedAxisDirection(): Pair<Int, Int>? {
         val absX = abs(currentGyroX)
         val absY = abs(currentGyroY)
         val absZ = abs(currentGyroZ)
-        if (absX < MIN_PRIMARY_AXIS_SPEED) {
-            return false
+        val axis = when {
+            absX >= absY && absX >= absZ -> 0
+            absY >= absX && absY >= absZ -> 1
+            else -> 2
         }
 
-        val offAxisMax = max(absY, absZ)
-        if (offAxisMax > absX * MAX_OFF_AXIS_FRACTION) {
-            return false
+        val primary = when (axis) {
+            0 -> absX
+            1 -> absY
+            else -> absZ
+        }
+        if (primary < MIN_PRIMARY_AXIS_SPEED) {
+            return null
         }
 
-        val offAxisSum = absY + absZ + 0.001f
-        val dominanceRatio = absX / offAxisSum
-        return dominanceRatio >= MIN_AXIS_DOMINANCE_RATIO
+        val (off1, off2) = when (axis) {
+            0 -> absY to absZ
+            1 -> absX to absZ
+            else -> absX to absY
+        }
+        val offAxisMax = max(off1, off2)
+        if (offAxisMax > primary * MAX_OFF_AXIS_FRACTION) {
+            return null
+        }
+
+        val offAxisSum = off1 + off2 + 0.001f
+        val dominanceRatio = primary / offAxisSum
+        if (dominanceRatio < MIN_AXIS_DOMINANCE_RATIO) {
+            return null
+        }
+
+        val direction = when (axis) {
+            0 -> if (currentGyroX >= 0f) 1 else -1
+            1 -> if (currentGyroY >= 0f) 1 else -1
+            else -> if (currentGyroZ >= 0f) 1 else -1
+        }
+        return axis to direction
     }
 
     fun reset() {
@@ -246,5 +287,7 @@ class PinchGestureClassifier {
         sampleCount = 0
         totalTwists = 0
         lastTwistTime = 0L
+        sequenceAxis = null
     }
 }
+

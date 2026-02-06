@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 object ControlPreferences {
     private const val PREFS_NAME = "snappinch_phone_prefs"
     private const val KEY_PRIMARY_ACTION = "primary_action"
+    private const val KEY_REVERSE_ACTION = "reverse_action"
     private const val KEY_CONTROL_ENABLED = "control_enabled"
     private const val KEY_PREFER_EXPLICIT_PLAY_PAUSE = "prefer_explicit_play_pause"
     private const val KEY_ALLOW_PROXY_SCREEN_OFF = "allow_proxy_screen_off"
@@ -37,6 +38,14 @@ object ControlPreferences {
 
     fun setPrimaryAction(context: Context, action: String) {
         prefs(context).edit().putString(KEY_PRIMARY_ACTION, action).apply()
+    }
+
+    fun getReverseAction(context: Context): String {
+        return prefs(context).getString(KEY_REVERSE_ACTION, ACTION_PLAY_PAUSE) ?: ACTION_PLAY_PAUSE
+    }
+
+    fun setReverseAction(context: Context, action: String) {
+        prefs(context).edit().putString(KEY_REVERSE_ACTION, action).apply()
     }
 
     fun isControlEnabled(context: Context): Boolean {

@@ -20,8 +20,13 @@
     <string name="open_accessibility">Open Accessibility</string>
     <string name="notification_access_hint">Enable notification access to improve media control.</string>
     <string name="select_action">Select Action</string>
+    <string name="select_reverse_action">Select Reverse Action</string>
     <string name="action_updated">Action updated</string>
     <string name="cancel">Cancel</string>
     <string name="service_resumed">Service resumed</string>
     <string name="service_paused_toast">Service paused</string>
+    <string name="primary_gesture_action">Primary Gesture Action</string>
+    <string name="reverse_gesture_action">Reverse Gesture Action</string>
+    <string name="change_primary_action_watch">Change Primary</string>
+    <string name="change_reverse_action_watch">Change Reverse</string>
 </resources>
