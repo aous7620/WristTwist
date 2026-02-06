@@ -1,6 +1,6 @@
 # WristTwist
 
-WristTwist is a two module Android project for wrist rotation gesture control across Wear OS and phone.
+WristTwist is a two module Android project for hand/wrist rotation gesture control across Wear OS and phone.
 
 ## Modules
 
