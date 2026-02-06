@@ -12,20 +12,21 @@ class PinchGestureClassifier {
         private const val DEBUG_LOGS = false
         private const val STATUS_LOG_INTERVAL = 200
 
-        private const val MIN_TWIST_SPEED = 5.5f
+        private const val MIN_TWIST_SPEED = 5.8f
         private const val MAX_TWIST_SPEED = 35.0f
 
-        private const val MIN_INTERVAL_MS = 100L
+        private const val MIN_INTERVAL_MS = 110L
+        private const val MIN_TOTAL_TIME_MS = 220L
         private const val MAX_TOTAL_TIME_MS = 1200L
         private const val COOLDOWN_MS = 1000L
-        private const val DEBOUNCE_MS = 50L
+        private const val DEBOUNCE_MS = 65L
 
         private const val BASELINE_WINDOW = 20
-        private const val SPIKE_RATIO = 2.0f
+        private const val SPIKE_RATIO = 2.15f
 
-        private const val MIN_PRIMARY_AXIS_SPEED = 4.2f
-        private const val MIN_AXIS_DOMINANCE_RATIO = 1.35f
-        private const val MAX_OFF_AXIS_FRACTION = 0.8f
+        private const val MIN_PRIMARY_AXIS_SPEED = 5.0f
+        private const val MIN_AXIS_DOMINANCE_RATIO = 1.45f
+        private const val MAX_OFF_AXIS_FRACTION = 0.7f
     }
 
     private data class TwistEvent(
@@ -175,9 +176,16 @@ class PinchGestureClassifier {
                 val t1 = twistSequence[0]
                 val t2 = twistSequence[1]
                 val t3 = twistSequence[2]
+                val totalTime = t3.timestamp - t1.timestamp
+                if (totalTime < MIN_TOTAL_TIME_MS) {
+                    if (DEBUG_LOGS) {
+                        Log.d(TAG, "Sequence too fast (%dms) - ignoring".format(totalTime))
+                    }
+                    twistSequence.clear()
+                    return false
+                }
 
                 if (t1.direction == t3.direction && t2.direction != t1.direction) {
-                    val totalTime = t3.timestamp - t1.timestamp
                     Log.i(
                         TAG,
                         "TRIPLE TWIST SUCCESS! pattern=%d->%d->%d, time=%dms".format(
