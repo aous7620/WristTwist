@@ -22,11 +22,16 @@ object ActionPreferences {
 
     // Available actions
     const val ACTION_PLAY_PAUSE = "play_pause" // Default
+    const val ACTION_PLAY = "play"
+    const val ACTION_PAUSE = "pause"
+    const val ACTION_STOP = "stop"
     const val ACTION_BACK = "back"
     const val ACTION_HOME = "home"
     const val ACTION_RECENTS = "recents"
     const val ACTION_NEXT_TRACK = "next_track"
     const val ACTION_PREV_TRACK = "prev_track"
+    const val ACTION_FAST_FORWARD = "fast_forward"
+    const val ACTION_REWIND = "rewind"
     const val ACTION_VOLUME_UP = "volume_up"
     const val ACTION_VOLUME_DOWN = "volume_down"
     const val ACTION_MUTE = "mute"
@@ -112,8 +117,13 @@ object ActionPreferences {
         payload["primary_action"]?.let { primary ->
             val mappedAction = when (primary) {
                 WearSyncProtocol.ACTION_PLAY_PAUSE -> ACTION_PLAY_PAUSE
+                WearSyncProtocol.ACTION_PLAY -> ACTION_PLAY
+                WearSyncProtocol.ACTION_PAUSE -> ACTION_PAUSE
+                WearSyncProtocol.ACTION_STOP -> ACTION_STOP
                 WearSyncProtocol.ACTION_NEXT -> ACTION_NEXT_TRACK
                 WearSyncProtocol.ACTION_PREVIOUS -> ACTION_PREV_TRACK
+                WearSyncProtocol.ACTION_FAST_FORWARD -> ACTION_FAST_FORWARD
+                WearSyncProtocol.ACTION_REWIND -> ACTION_REWIND
                 WearSyncProtocol.ACTION_VOLUME_UP -> ACTION_VOLUME_UP
                 WearSyncProtocol.ACTION_VOLUME_DOWN -> ACTION_VOLUME_DOWN
                 WearSyncProtocol.ACTION_MUTE -> ACTION_MUTE
@@ -153,11 +163,16 @@ object ActionPreferences {
     fun getActionDisplayName(action: String): String {
         return when (action) {
             ACTION_PLAY_PAUSE -> "Play/Pause Media"
+            ACTION_PLAY -> "Play"
+            ACTION_PAUSE -> "Pause"
+            ACTION_STOP -> "Stop"
             ACTION_BACK -> "Back"
             ACTION_HOME -> "Home"
             ACTION_RECENTS -> "Recent Apps"
             ACTION_NEXT_TRACK -> "Next Track"
             ACTION_PREV_TRACK -> "Previous Track"
+            ACTION_FAST_FORWARD -> "Fast Forward"
+            ACTION_REWIND -> "Rewind"
             ACTION_VOLUME_UP -> "Volume Up"
             ACTION_VOLUME_DOWN -> "Volume Down"
             ACTION_MUTE -> "Mute"
@@ -168,11 +183,16 @@ object ActionPreferences {
 
     fun getAllActions(): List<String> = listOf(
         ACTION_PLAY_PAUSE,
+        ACTION_PLAY,
+        ACTION_PAUSE,
+        ACTION_STOP,
         ACTION_BACK,
         ACTION_HOME,
         ACTION_RECENTS,
         ACTION_NEXT_TRACK,
         ACTION_PREV_TRACK,
+        ACTION_FAST_FORWARD,
+        ACTION_REWIND,
         ACTION_VOLUME_UP,
         ACTION_VOLUME_DOWN,
         ACTION_MUTE,

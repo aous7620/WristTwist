@@ -7,8 +7,13 @@ object WearSyncProtocol {
     const val PATH_WATCH_SETTINGS_UPDATE = "/snappinch/watch_settings_update"
 
     const val ACTION_PLAY_PAUSE = "play_pause"
+    const val ACTION_PLAY = "play"
+    const val ACTION_PAUSE = "pause"
+    const val ACTION_STOP = "stop"
     const val ACTION_NEXT = "next_track"
     const val ACTION_PREVIOUS = "prev_track"
+    const val ACTION_FAST_FORWARD = "fast_forward"
+    const val ACTION_REWIND = "rewind"
     const val ACTION_VOLUME_UP = "volume_up"
     const val ACTION_VOLUME_DOWN = "volume_down"
     const val ACTION_MUTE = "mute"

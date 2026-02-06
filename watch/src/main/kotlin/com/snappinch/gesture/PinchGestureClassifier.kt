@@ -15,14 +15,14 @@ class PinchGestureClassifier {
         private const val MIN_TWIST_SPEED = 5.8f
         private const val MAX_TWIST_SPEED = 35.0f
 
-        private const val MIN_INTERVAL_MS = 110L
-        private const val MIN_TOTAL_TIME_MS = 220L
+        private const val MIN_INTERVAL_MS = 70L
+        private const val MIN_TOTAL_TIME_MS = 140L
         private const val MAX_TOTAL_TIME_MS = 1200L
         private const val COOLDOWN_MS = 1000L
-        private const val DEBOUNCE_MS = 65L
+        private const val DEBOUNCE_MS = 45L
 
         private const val BASELINE_WINDOW = 20
-        private const val SPIKE_RATIO = 2.15f
+        private const val SPIKE_RATIO = 2.08f
 
         private const val MIN_PRIMARY_AXIS_SPEED = 5.0f
         private const val MIN_AXIS_DOMINANCE_RATIO = 1.45f

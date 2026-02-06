@@ -359,6 +359,18 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                     action,
                     android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
                 )
+                ActionPreferences.ACTION_PLAY -> performMediaAction(
+                    action,
+                    android.view.KeyEvent.KEYCODE_MEDIA_PLAY
+                )
+                ActionPreferences.ACTION_PAUSE -> performMediaAction(
+                    action,
+                    android.view.KeyEvent.KEYCODE_MEDIA_PAUSE
+                )
+                ActionPreferences.ACTION_STOP -> performMediaAction(
+                    action,
+                    android.view.KeyEvent.KEYCODE_MEDIA_STOP
+                )
                 ActionPreferences.ACTION_BACK -> performGlobalAction(GLOBAL_ACTION_BACK)
                 ActionPreferences.ACTION_HOME -> performGlobalAction(GLOBAL_ACTION_HOME)
                 ActionPreferences.ACTION_RECENTS -> performGlobalAction(GLOBAL_ACTION_RECENTS)
@@ -369,6 +381,14 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                 ActionPreferences.ACTION_PREV_TRACK -> performMediaAction(
                     action,
                     android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS
+                )
+                ActionPreferences.ACTION_FAST_FORWARD -> performMediaAction(
+                    action,
+                    android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
+                )
+                ActionPreferences.ACTION_REWIND -> performMediaAction(
+                    action,
+                    android.view.KeyEvent.KEYCODE_MEDIA_REWIND
                 )
                 ActionPreferences.ACTION_VOLUME_UP -> performRemoteMediaAction(action) || adjustVolume(true)
                 ActionPreferences.ACTION_VOLUME_DOWN -> performRemoteMediaAction(action) || adjustVolume(false)
@@ -419,8 +439,13 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
     private fun toRemoteAction(actionId: String): String? {
         return when (actionId) {
             ActionPreferences.ACTION_PLAY_PAUSE -> WearSyncProtocol.ACTION_PLAY_PAUSE
+            ActionPreferences.ACTION_PLAY -> WearSyncProtocol.ACTION_PLAY
+            ActionPreferences.ACTION_PAUSE -> WearSyncProtocol.ACTION_PAUSE
+            ActionPreferences.ACTION_STOP -> WearSyncProtocol.ACTION_STOP
             ActionPreferences.ACTION_NEXT_TRACK -> WearSyncProtocol.ACTION_NEXT
             ActionPreferences.ACTION_PREV_TRACK -> WearSyncProtocol.ACTION_PREVIOUS
+            ActionPreferences.ACTION_FAST_FORWARD -> WearSyncProtocol.ACTION_FAST_FORWARD
+            ActionPreferences.ACTION_REWIND -> WearSyncProtocol.ACTION_REWIND
             ActionPreferences.ACTION_VOLUME_UP -> WearSyncProtocol.ACTION_VOLUME_UP
             ActionPreferences.ACTION_VOLUME_DOWN -> WearSyncProtocol.ACTION_VOLUME_DOWN
             ActionPreferences.ACTION_MUTE -> WearSyncProtocol.ACTION_MUTE
@@ -630,8 +655,13 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
                         transport.play()
                     }
                 }
+                android.view.KeyEvent.KEYCODE_MEDIA_PLAY -> transport.play()
+                android.view.KeyEvent.KEYCODE_MEDIA_PAUSE -> transport.pause()
+                android.view.KeyEvent.KEYCODE_MEDIA_STOP -> transport.stop()
                 android.view.KeyEvent.KEYCODE_MEDIA_NEXT -> transport.skipToNext()
                 android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS -> transport.skipToPrevious()
+                android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> transport.fastForward()
+                android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> transport.rewind()
                 else -> return false
             }
             true
@@ -699,6 +729,21 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
             }
             android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
                 (actions and PlaybackState.ACTION_SKIP_TO_PREVIOUS) != 0L
+            }
+            android.view.KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                (actions and PlaybackState.ACTION_PLAY) != 0L
+            }
+            android.view.KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                (actions and PlaybackState.ACTION_PAUSE) != 0L
+            }
+            android.view.KeyEvent.KEYCODE_MEDIA_STOP -> {
+                (actions and PlaybackState.ACTION_STOP) != 0L
+            }
+            android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                (actions and PlaybackState.ACTION_FAST_FORWARD) != 0L
+            }
+            android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                (actions and PlaybackState.ACTION_REWIND) != 0L
             }
             else -> false
         }

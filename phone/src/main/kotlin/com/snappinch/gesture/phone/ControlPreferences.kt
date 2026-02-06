@@ -16,8 +16,13 @@ object ControlPreferences {
     private const val DEFAULT_OFFSCREEN_RETRY_DELAY_MS = 220
 
     const val ACTION_PLAY_PAUSE = "play_pause"
+    const val ACTION_PLAY = "play"
+    const val ACTION_PAUSE = "pause"
+    const val ACTION_STOP = "stop"
     const val ACTION_NEXT_TRACK = "next_track"
     const val ACTION_PREV_TRACK = "prev_track"
+    const val ACTION_FAST_FORWARD = "fast_forward"
+    const val ACTION_REWIND = "rewind"
     const val ACTION_VOLUME_UP = "volume_up"
     const val ACTION_VOLUME_DOWN = "volume_down"
     const val ACTION_MUTE = "mute"
@@ -85,8 +90,13 @@ object ControlPreferences {
     fun getActionDisplayName(action: String): String {
         return when (action) {
             ACTION_PLAY_PAUSE -> "Play/Pause"
+            ACTION_PLAY -> "Play"
+            ACTION_PAUSE -> "Pause"
+            ACTION_STOP -> "Stop"
             ACTION_NEXT_TRACK -> "Next Track"
             ACTION_PREV_TRACK -> "Previous Track"
+            ACTION_FAST_FORWARD -> "Fast Forward"
+            ACTION_REWIND -> "Rewind"
             ACTION_VOLUME_UP -> "Volume Up"
             ACTION_VOLUME_DOWN -> "Volume Down"
             ACTION_MUTE -> "Mute"
@@ -96,8 +106,13 @@ object ControlPreferences {
 
     fun getAllActions(): List<String> = listOf(
         ACTION_PLAY_PAUSE,
+        ACTION_PLAY,
+        ACTION_PAUSE,
+        ACTION_STOP,
         ACTION_NEXT_TRACK,
         ACTION_PREV_TRACK,
+        ACTION_FAST_FORWARD,
+        ACTION_REWIND,
         ACTION_VOLUME_UP,
         ACTION_VOLUME_DOWN,
         ACTION_MUTE

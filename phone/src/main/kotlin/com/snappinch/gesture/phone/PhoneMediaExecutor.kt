@@ -31,6 +31,9 @@ object PhoneMediaExecutor {
                     handlePlayPause(context)
                 }
             }
+            WearSyncProtocol.ACTION_PLAY -> dispatchOrFallback(context, android.view.KeyEvent.KEYCODE_MEDIA_PLAY)
+            WearSyncProtocol.ACTION_PAUSE -> dispatchOrFallback(context, android.view.KeyEvent.KEYCODE_MEDIA_PAUSE)
+            WearSyncProtocol.ACTION_STOP -> dispatchOrFallback(context, android.view.KeyEvent.KEYCODE_MEDIA_STOP)
             WearSyncProtocol.ACTION_NEXT -> {
                 if (!dispatchToActiveSession(context, android.view.KeyEvent.KEYCODE_MEDIA_NEXT)) {
                     sendMediaKey(context, android.view.KeyEvent.KEYCODE_MEDIA_NEXT)
@@ -41,6 +44,8 @@ object PhoneMediaExecutor {
                     sendMediaKey(context, android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS)
                 }
             }
+            WearSyncProtocol.ACTION_FAST_FORWARD -> dispatchOrFallback(context, android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)
+            WearSyncProtocol.ACTION_REWIND -> dispatchOrFallback(context, android.view.KeyEvent.KEYCODE_MEDIA_REWIND)
             WearSyncProtocol.ACTION_VOLUME_UP -> adjustVolume(context, true)
             WearSyncProtocol.ACTION_VOLUME_DOWN -> adjustVolume(context, false)
             WearSyncProtocol.ACTION_MUTE -> toggleMute(context)
@@ -101,6 +106,12 @@ object PhoneMediaExecutor {
         if (key == android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) return false
         val power = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         return !power.isInteractive
+    }
+
+    private fun dispatchOrFallback(context: Context, keyCode: Int) {
+        if (!dispatchToActiveSession(context, keyCode)) {
+            sendMediaKey(context, keyCode)
+        }
     }
 
     private fun inferExplicitPlayPauseKey(context: Context): Int? {
@@ -207,8 +218,13 @@ object PhoneMediaExecutor {
                         state == PlaybackState.STATE_CONNECTING
                     if (isPlaying) transport.pause() else transport.play()
                 }
+                android.view.KeyEvent.KEYCODE_MEDIA_PLAY -> transport.play()
+                android.view.KeyEvent.KEYCODE_MEDIA_PAUSE -> transport.pause()
+                android.view.KeyEvent.KEYCODE_MEDIA_STOP -> transport.stop()
                 android.view.KeyEvent.KEYCODE_MEDIA_NEXT -> transport.skipToNext()
                 android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS -> transport.skipToPrevious()
+                android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> transport.fastForward()
+                android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> transport.rewind()
                 else -> return false
             }
             true
@@ -226,8 +242,13 @@ object PhoneMediaExecutor {
                     (actions and PlaybackState.ACTION_PLAY) != 0L ||
                     (actions and PlaybackState.ACTION_PAUSE) != 0L
             }
+            android.view.KeyEvent.KEYCODE_MEDIA_PLAY -> (actions and PlaybackState.ACTION_PLAY) != 0L
+            android.view.KeyEvent.KEYCODE_MEDIA_PAUSE -> (actions and PlaybackState.ACTION_PAUSE) != 0L
+            android.view.KeyEvent.KEYCODE_MEDIA_STOP -> (actions and PlaybackState.ACTION_STOP) != 0L
             android.view.KeyEvent.KEYCODE_MEDIA_NEXT -> (actions and PlaybackState.ACTION_SKIP_TO_NEXT) != 0L
             android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS -> (actions and PlaybackState.ACTION_SKIP_TO_PREVIOUS) != 0L
+            android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> (actions and PlaybackState.ACTION_FAST_FORWARD) != 0L
+            android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> (actions and PlaybackState.ACTION_REWIND) != 0L
             else -> false
         }
     }
