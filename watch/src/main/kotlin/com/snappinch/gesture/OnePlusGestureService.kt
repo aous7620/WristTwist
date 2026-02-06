@@ -22,6 +22,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.content.ContextCompat
 import kotlin.concurrent.thread
 
 class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearDetector.WearStateListener {
@@ -327,12 +328,12 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
 
     private fun registerPauseReceiver() {
         val filter = IntentFilter(ACTION_TOGGLE_PAUSE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(pauseReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("DEPRECATION")
-            registerReceiver(pauseReceiver, filter)
-        }
+        ContextCompat.registerReceiver(
+            this,
+            pauseReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
     
     private var eventCounter = 0L
@@ -804,13 +805,8 @@ class OnePlusGestureService : AccessibilityService(), SensorEventListener, WearD
             return
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val pattern = longArrayOf(0, 50, 50, 50)
-            val effect = VibrationEffect.createWaveform(pattern, -1)
-            vibrator.vibrate(effect)
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(longArrayOf(0, 50, 50, 50), -1)
-        }
+        val pattern = longArrayOf(0, 50, 50, 50)
+        val effect = VibrationEffect.createWaveform(pattern, -1)
+        vibrator.vibrate(effect)
     }
 }

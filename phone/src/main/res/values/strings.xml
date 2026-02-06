@@ -17,6 +17,7 @@
     <string name="enable_offscreen_retry">Enable off-screen retry</string>
     <string name="enable_haptics">Enable haptics</string>
     <string name="retry_delay_default">Off-screen retry delay: 220ms</string>
+    <string name="retry_delay_format">Off-screen retry delay: %1$dms</string>
     <string name="resume_control">Resume Control</string>
     <string name="control_resumed">Control resumed</string>
     <string name="control_paused">Control paused</string>

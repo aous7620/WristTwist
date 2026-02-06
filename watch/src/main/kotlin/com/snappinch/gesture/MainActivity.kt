@@ -159,15 +159,12 @@ class MainActivity : ComponentActivity() {
         try {
             val detailIntent = Intent(ACTION_ACCESSIBILITY_DETAILS_SETTINGS).apply {
                 putExtra(EXTRA_COMPONENT_NAME, serviceComponent)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(detailIntent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open accessibility settings", e)
             try {
-                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             } catch (e2: Exception) {
                 Log.e(TAG, "Failed to open accessibility settings fallback", e2)
                 startActivity(Intent(Settings.ACTION_SETTINGS))

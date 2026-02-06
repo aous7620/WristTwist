@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
@@ -15,6 +14,7 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
 
@@ -66,12 +66,12 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         val filter = IntentFilter(PhoneSyncListenerService.ACTION_PHONE_SETTINGS_CHANGED)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(settingsChangedReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("DEPRECATION")
-            registerReceiver(settingsChangedReceiver, filter)
-        }
+        ContextCompat.registerReceiver(
+            this,
+            settingsChangedReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
 
     override fun onStop() {
@@ -131,7 +131,10 @@ class MainActivity : ComponentActivity() {
         retryDelaySeekBar.max = RETRY_DELAY_MAX_MS - RETRY_DELAY_MIN_MS
         retryDelaySeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                retryDelayValueText.text = "Off-screen retry delay: ${progress + RETRY_DELAY_MIN_MS}ms"
+                retryDelayValueText.text = getString(
+                    R.string.retry_delay_format,
+                    progress + RETRY_DELAY_MIN_MS
+                )
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
@@ -151,7 +154,7 @@ class MainActivity : ComponentActivity() {
 
         val delay = ControlPreferences.getOffscreenRetryDelayMs(this)
         retryDelaySeekBar.progress = delay - RETRY_DELAY_MIN_MS
-        retryDelayValueText.text = "Off-screen retry delay: ${delay}ms"
+        retryDelayValueText.text = getString(R.string.retry_delay_format, delay)
         bindingCustomizationState = false
     }
 
@@ -216,14 +219,17 @@ class MainActivity : ComponentActivity() {
 
     private fun openNotificationListenerSettings() {
         try {
-            val detailIntent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS).apply {
-                putExtra(
-                    Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
-                    ComponentName(this@MainActivity, PhoneNotificationListener::class.java).flattenToString()
-                )
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                val detailIntent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS).apply {
+                    putExtra(
+                        Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
+                        ComponentName(this@MainActivity, PhoneNotificationListener::class.java).flattenToString()
+                    )
+                }
+                startActivity(detailIntent)
+            } else {
+                startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
             }
-            startActivity(detailIntent)
         } catch (e: Exception) {
             try {
                 startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))

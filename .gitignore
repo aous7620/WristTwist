@@ -1,13 +1,21 @@
 # Gradle
 .gradle/
+.kotlin/
 build/
 */build/
+captures/
+output-metadata.json
+*.apk
+*.ap_
+*.aab
+*.apks
 
 # Local config
 local.properties
 
 # IDE
 .idea/
+.vscode/
 *.iml
 *.ipr
 *.iws
