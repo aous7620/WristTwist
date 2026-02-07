@@ -18,9 +18,9 @@ class PinchGestureClassifier {
         private const val MIN_INTERVAL_MS = 70L
         private const val MIN_TOTAL_TIME_MS = 140L
         private const val MAX_TOTAL_TIME_MS = 1000L
-        private const val MAX_GAP_1_TO_2_MS = 300L
-        private const val MAX_GAP_2_TO_3_MS = 400L
-        private const val COOLDOWN_MS = 680L
+        private const val MAX_GAP_1_TO_2_MS = 275L
+        private const val MAX_GAP_2_TO_3_MS = 375L
+        private const val COOLDOWN_MS = 730L
         private const val DEBOUNCE_MS = 45L
 
         private const val BASELINE_WINDOW = 20
