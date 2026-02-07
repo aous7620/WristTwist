@@ -12,7 +12,7 @@ class PinchGestureClassifier {
         private const val DEBUG_LOGS = false
         private const val STATUS_LOG_INTERVAL = 200
 
-        private const val MIN_TWIST_SPEED = 5.8f
+        private const val MIN_TWIST_SPEED = 5.7f
         private const val MAX_TWIST_SPEED = 35.0f
 
         private const val MIN_INTERVAL_MS = 70L
@@ -24,9 +24,9 @@ class PinchGestureClassifier {
         private const val DEBOUNCE_MS = 45L
 
         private const val BASELINE_WINDOW = 20
-        private const val SPIKE_RATIO = 2.08f
+        private const val SPIKE_RATIO = 2.05f
 
-        private const val MIN_PRIMARY_AXIS_SPEED = 5.0f
+        private const val MIN_PRIMARY_AXIS_SPEED = 4.9f
         private const val MIN_AXIS_DOMINANCE_RATIO = 1.45f
         private const val MAX_OFF_AXIS_FRACTION = 0.7f
     }
