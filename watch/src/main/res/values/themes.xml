@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.WristTwist.Watch" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="shapeAppearanceSmallComponent">@style/Shape.WristTwist.Watch.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/Shape.WristTwist.Watch.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/Shape.WristTwist.Watch.Large</item>
+    </style>
+
+    <style name="Shape.WristTwist.Watch.Small" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="Shape.WristTwist.Watch.Medium" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="Shape.WristTwist.Watch.Large" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+</resources>

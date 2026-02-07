@@ -12,21 +12,22 @@ class PinchGestureClassifier {
         private const val DEBUG_LOGS = false
         private const val STATUS_LOG_INTERVAL = 200
 
-        private const val MIN_TWIST_SPEED = 5.7f
+        private const val MIN_TWIST_SPEED = 5.75f
         private const val MAX_TWIST_SPEED = 35.0f
 
         private const val MIN_INTERVAL_MS = 70L
         private const val MIN_TOTAL_TIME_MS = 140L
         private const val MAX_TOTAL_TIME_MS = 1000L
-        private const val MAX_GAP_1_TO_2_MS = 330L
-        private const val MAX_GAP_2_TO_3_MS = 420L
-        private const val COOLDOWN_MS = 600L
+        private const val MAX_GAP_1_TO_2_MS = 300L
+        private const val MAX_GAP_2_TO_3_MS = 400L
+        private const val COOLDOWN_MS = 680L
         private const val DEBOUNCE_MS = 45L
 
         private const val BASELINE_WINDOW = 20
+        private const val BASELINE_MAX_SAMPLE_SPEED = 3.4f
         private const val SPIKE_RATIO = 2.05f
 
-        private const val MIN_PRIMARY_AXIS_SPEED = 4.9f
+        private const val MIN_PRIMARY_AXIS_SPEED = 5.0f
         private const val MIN_AXIS_DOMINANCE_RATIO = 1.45f
         private const val MAX_OFF_AXIS_FRACTION = 0.7f
     }
@@ -59,7 +60,7 @@ class PinchGestureClassifier {
         currentGyroZ = z
         currentGyroMag = sqrt(x * x + y * y + z * z)
 
-        if (currentGyroMag < MIN_TWIST_SPEED) {
+        if (twistSequence.isEmpty() && currentGyroMag < BASELINE_MAX_SAMPLE_SPEED) {
             recentGyro.addLast(currentGyroMag)
             if (recentGyro.size > BASELINE_WINDOW) {
                 recentGyro.removeFirst()
